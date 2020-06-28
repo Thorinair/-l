@@ -1,0 +1,2 @@
+# ExclamL - **!l**
+ExclamL (written as !l) is a single-button ESP8266-powered device which forces [Princess Luna](https://github.com/Thorinair/Princess-Luna) to post lyrical data of the track currently playing on [PonyvilleFM](https://ponyvillefm.com/). Designed to seamlessly work with Thorinair's DJing setup, both on his Glory of The Night Discord server, and his [Twitch stream](https://www.twitch.tv/thorinair).
