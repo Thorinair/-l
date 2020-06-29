@@ -15,5 +15,8 @@
 /* URL called to post lyrics. */
 #define LUNA_URL_L     "/?action=l"
 
+/* URL called to check for lyrics. */
+#define LUNA_URL_LQ    "/?action=lq"
+
 /* Debug the URL opening procedure. */
 #define LUNA_DEBUG false

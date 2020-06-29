@@ -6,7 +6,7 @@
 #include "Shared.h"
 #include "TwiFi.h"
 
-#include "ConfigurationLED.h"
+#include "Configuration.h"
 #include "ConfigurationLuna.h"
 #include "ConfigurationWiFi.h"
 
@@ -21,22 +21,29 @@
 #define URL_RESULT_DONE 0
 #define URL_RESULT_FAIL 1
 
+#define STATUS_NO_LYRICS 0
+#define STATUS_LYRICS    1
+#define STATUS_ERROR     2
+
 
 /* LEDs */
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN_PIXEL, NEO_GRB + NEO_KHZ800);
 
 struct LEDMain {
-	RGB led {ledIdle.r, ledIdle.g, ledIdle.b};
+	RGB led {ledIdleNoLyrics.r, ledIdleNoLyrics.g, ledIdleNoLyrics.b};
 } ledMain;
 
 /* Misc. Values */
 bool buttonPressed = false;
 int holdCounter = 0;
+int statusCounter = 0;
+int status = STATUS_NO_LYRICS;
 
 void setupPins();
 void setupLED();
 
 void processButtons();
+void processStatus();
 void processTicks();
 
 void ledFlicker();
@@ -58,10 +65,24 @@ void processButtons() {
     if (digitalRead(PIN_BUTTON) == LOW && !buttonPressed) {
         buttonPressed = true;
         holdCounter = 0;
+        statusCounter = 0;
 
-        ledMain.led.r = ledPressed.r;
-        ledMain.led.g = ledPressed.g;
-        ledMain.led.b = ledPressed.b;
+        float rTar = ledIdleNoLyrics.r;
+        float gTar = ledIdleNoLyrics.g;
+        float bTar = ledIdleNoLyrics.b;
+        if (status == STATUS_LYRICS) {
+            rTar = ledIdleLyrics.r;
+            gTar = ledIdleLyrics.g;
+            bTar = ledIdleLyrics.b;
+        }
+        else if (status == STATUS_ERROR) {
+            rTar = ledIdleError.r;
+            gTar = ledIdleError.g;
+            bTar = ledIdleError.b;
+        }
+        ledMain.led.r = rTar * LED_PRESSED_MULTI;
+        ledMain.led.g = gTar * LED_PRESSED_MULTI;
+        ledMain.led.b = bTar * LED_PRESSED_MULTI;
         ledSet();
 
         int result = openL();
@@ -88,12 +109,36 @@ void processButtons() {
     }
 }
 
+void processStatus() {
+    if (statusCounter >= LYRICS_INTERVAL / RUNTIME_STEP) {
+        statusCounter = 0;
+        openLQ();
+    }
+    else {
+        statusCounter++;
+    }
+}
+
 void processTicks() {
-    if (holdCounter >= LED_NOTIF_HOLD / LED_ANIMATION_INTERVAL) {
-        float div = LED_NOTIF_FADE / LED_ANIMATION_INTERVAL;
-        float rOffs = (ledIdle.r - ledMain.led.r) / div;
-        float gOffs = (ledIdle.g - ledMain.led.g) / div;
-        float bOffs = (ledIdle.b - ledMain.led.b) / div;
+    if (holdCounter >= LED_NOTIF_HOLD / RUNTIME_STEP) {
+        float rTar = ledIdleNoLyrics.r;
+        float gTar = ledIdleNoLyrics.g;
+        float bTar = ledIdleNoLyrics.b;
+        if (status == STATUS_LYRICS) {
+            rTar = ledIdleLyrics.r;
+            gTar = ledIdleLyrics.g;
+            bTar = ledIdleLyrics.b;
+        }
+        else if (status == STATUS_ERROR) {
+            rTar = ledIdleError.r;
+            gTar = ledIdleError.g;
+            bTar = ledIdleError.b;
+        }
+
+        float div = LED_NOTIF_FADE / RUNTIME_STEP;
+        float rOffs = (rTar - ledMain.led.r) / div;
+        float gOffs = (gTar - ledMain.led.g) / div;
+        float bOffs = (bTar - ledMain.led.b) / div;
 
         ledMain.led.r += rOffs;
         ledMain.led.g += gOffs;
@@ -146,6 +191,29 @@ int openL() {
         return RESULT_ERROR;
 }
 
+void openLQ() {
+    Serial.println("Test");
+    HTTPClient http;
+
+    http.begin(LUNA_IP, LUNA_PORT, String(LUNA_URL_LQ) + "&key=" + String(LUNA_KEY));
+
+    int httpCode = http.GET();
+    if (httpCode != 200) {
+        status = STATUS_ERROR;
+        return;
+    }
+
+    String body = http.getString();
+    http.end();
+
+    if (body == "true")
+        status = STATUS_LYRICS;
+    else if (body == "false")
+        status = STATUS_NO_LYRICS;
+    else
+        status = STATUS_ERROR;
+}
+
 int openURL(String url) {
     if (LUNA_DEBUG)
         Serial.println("Opening URL: " + String(LUNA_IP) + url);
@@ -184,6 +252,7 @@ void setup() {
 void loop() {	
 	if (!LED_COLOR_DEBUG) {
         processButtons();
+        processStatus();
 		processTicks();
 
 		if (WiFi.status() != WL_CONNECTED) {
@@ -195,6 +264,6 @@ void loop() {
 		strip.show();
 	} 
 
-	delay(LED_ANIMATION_INTERVAL);
+	delay(RUNTIME_STEP);
 }
 
