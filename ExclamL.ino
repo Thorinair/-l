@@ -172,6 +172,9 @@ void ledSet() {
 }
 
 int openL() {
+    if (LUNA_DEBUG)
+        Serial.println("Forcing lyrics!");
+
     HTTPClient http;
 
     http.begin(LUNA_IP, LUNA_PORT, String(LUNA_URL_L) + "&key=" + String(LUNA_KEY));
@@ -192,7 +195,9 @@ int openL() {
 }
 
 void openLQ() {
-    Serial.println("Test");
+    if (LUNA_DEBUG)
+        Serial.println("Fetching lyric info.");
+
     HTTPClient http;
 
     http.begin(LUNA_IP, LUNA_PORT, String(LUNA_URL_LQ) + "&key=" + String(LUNA_KEY));
