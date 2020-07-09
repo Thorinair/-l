@@ -8,6 +8,9 @@
 /* Interval for lyrics checking in ms (has to be a multiple of RUNTIME_STEP). */
 #define LYRICS_INTERVAL 2000
 
+/* Fails until counts as fail. */
+#define FAIL_COUNT 2
+
 
 /********
  * LED Configuration

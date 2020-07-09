@@ -37,6 +37,7 @@ struct LEDMain {
 bool buttonPressed = false;
 int holdCounter = 0;
 int statusCounter = 0;
+int failCounter = 0;
 int status = STATUS_NO_LYRICS;
 
 void setupPins();
@@ -211,12 +212,20 @@ void openLQ() {
     String body = http.getString();
     http.end();
 
-    if (body == "true")
+    if (body == "true") {
+        failCounter = 0;
         status = STATUS_LYRICS;
-    else if (body == "false")
+    }
+    else if (body == "false") {
+        failCounter = 0;
         status = STATUS_NO_LYRICS;
-    else
-        status = STATUS_ERROR;
+    }
+    else {
+        if (failCounter >= FAIL_COUNT)
+            status = STATUS_ERROR;
+        else
+            failCounter++;
+    }
 }
 
 int openURL(String url) {
