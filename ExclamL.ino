@@ -39,6 +39,7 @@ int holdCounter = 0;
 int statusCounter = 0;
 int failCounter = 0;
 int status = STATUS_NO_LYRICS;
+String npOld = "";
 
 void setupPins();
 void setupLED();
@@ -51,6 +52,8 @@ void ledFlicker();
 void ledSet();
 int openL();
 int openURL(String url);
+String splitString(String data, char separator, int index);
+void checkNewTrack(String npNew);
 
 
 void setupPins() {
@@ -212,12 +215,17 @@ void openLQ() {
     String body = http.getString();
     http.end();
 
-    if (body == "true") {
+    String hasLyrics = splitString(body, '|', 0);
+    String npNew = splitString(body, '|', 1);
+
+    if (hasLyrics == "true") {
         failCounter = 0;
+        checkNewTrack(npNew);
         status = STATUS_LYRICS;
     }
-    else if (body == "false") {
+    else if (hasLyrics == "false") {
         failCounter = 0;
+        checkNewTrack(npNew);
         status = STATUS_NO_LYRICS;
     }
     else {
@@ -248,6 +256,32 @@ int openURL(String url) {
         Serial.println("Connection success.");
 
     return URL_RESULT_DONE;
+}
+
+String splitString(String data, char separator, int index) {
+    int found = 0;
+    int strIndex[] = {0, -1};
+    int maxIndex = data.length() - 1;
+
+    for(int i = 0; i <= maxIndex && found <= index; i++) {
+        if(data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i + 1 : i;
+        }
+    }
+
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+void checkNewTrack(String npNew) {
+    if (npOld != npNew) {
+        npOld = npNew;
+        ledMain.led.r = ledNotifNewTrack.r;
+        ledMain.led.g = ledNotifNewTrack.g;
+        ledMain.led.b = ledNotifNewTrack.b;
+        ledSet();
+    }
 }
 
 void setup() {

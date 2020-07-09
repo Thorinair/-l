@@ -9,7 +9,7 @@
 #define LYRICS_INTERVAL 2000
 
 /* Fails until counts as fail. */
-#define FAIL_COUNT 2
+#define FAIL_COUNT 4
 
 
 /********
@@ -42,6 +42,7 @@ RGB ledNotifWiFiFail   {96, 0, 0};
 RGB ledNotifSuccess    {0, 192, 0};
 RGB ledNotifError      {192, 0, 0};
 RGB ledNotifNoLyrics   {192, 0, 0};
+RGB ledNotifNewTrack   {128, 0, 192};
 
 /* Enable color debugging.
  * The LED will keep glowing in the color set below. 
