@@ -11,8 +11,8 @@ typedef struct RGB {
 };
 
 #include "Configuration.h"
-#include "ConfigurationLuna.h"
 #include "ConfigurationWiFi.h"
+#include "ConfigurationLuna.h"
 
 
 #define PIN_PIXEL  13
