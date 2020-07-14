@@ -59,6 +59,10 @@ int openURL(String url);
 String splitString(String data, char separator, int index);
 void checkNewTrack(String npNew);
 
+void connectAttempt(int idEntry, int attempt);
+void connectSuccess(int idEntry);
+void connectFail(int idEntry);
+
 
 void setupPins() {
     pinMode(PIN_BUTTON, INPUT_PULLUP);
