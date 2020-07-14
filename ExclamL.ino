@@ -288,7 +288,7 @@ void checkNewTrack(String npNew) {
     }
 }
 
-void connectAttempt(int attempt) {
+void connectAttempt(int idEntry, int attempt) {
     if (attempt % 2)
         strip.setPixelColor(0, strip.Color(ledNotifWiFiSearch.r, ledNotifWiFiSearch.g, ledNotifWiFiSearch.b));
     else 
