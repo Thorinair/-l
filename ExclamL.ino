@@ -1,10 +1,14 @@
 #include <Adafruit_NeoPixel.h>
 #include <ESP8266HTTPClient.h>
 
-#include "ESP8266WiFi.h"
+#include <ESP8266WiFi.h>
+#include <TwiFi.h>
 
-#include "Shared.h"
-#include "TwiFi.h"
+typedef struct RGB {
+    float r;
+    float g;
+    float b;
+};
 
 #include "Configuration.h"
 #include "ConfigurationLuna.h"
@@ -284,12 +288,44 @@ void checkNewTrack(String npNew) {
     }
 }
 
+void connectAttempt(int attempt) {
+    if (attempt % 2)
+        strip.setPixelColor(0, strip.Color(ledNotifWiFiSearch.r, ledNotifWiFiSearch.g, ledNotifWiFiSearch.b));
+    else 
+        strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+}
+
+void connectSuccess(int idEntry) {
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+}
+
+void connectFail(int idEntry) {
+    strip.setPixelColor(0, strip.Color(ledNotifWiFiFail.r, ledNotifWiFiFail.g, ledNotifWiFiFail.b));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+}
+
 void setup() {
     Serial.begin(115200);
 
     setupPins();
     setupLED();
-	connectWiFi(true);
+
+    twifiInit(
+        wifis,
+        WIFI_COUNT,
+        WIFI_HOST,
+        WIFI_TIMEOUT,
+        &connectAttempt,
+        &connectSuccess,
+        &connectFail,
+        WIFI_DEBUG
+        );
+	twifiConnect(true);
 
 	if (!LED_COLOR_DEBUG) {
         ledSet();
@@ -303,9 +339,8 @@ void loop() {
         processStatus();
 		processTicks();
 
-		if (WiFi.status() != WL_CONNECTED) {
-			connectWiFi(true);
-	    }
+        if (!twifiIsConnected())
+            twifiConnect(true);
 	}
 	else {
 		strip.setPixelColor(0, strip.Color(ledDebug.r, ledDebug.g, ledDebug.b)); 
